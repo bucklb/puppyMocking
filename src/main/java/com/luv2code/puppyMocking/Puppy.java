@@ -10,6 +10,7 @@ public class Puppy {
     public Human owner;
     private int energyLevel;
     private Random puppyRandomness;
+    private Toy puppyToy;
 
     public Puppy(String name, Human owner){
         this.name = name;
@@ -19,9 +20,24 @@ public class Puppy {
     }
 
     public static Puppy createPuppy(String name, Human human) {
+
+        // If no human then throw exception, just for the hell of it
+        if(null==human){
+            throw new IllegalArgumentException("Puppy cannot exist without a human!");
+        }
+
         human.isSoHappy();
         return new Puppy(name, human);
     }
+
+    // Want puppy to get Toy (and presumably be happy/bark)
+    public String acquireToy(){
+        this.puppyToy=new Toy("generic");
+        bark();
+        return this.puppyToy.getToyName();
+    }
+
+
 
     public void chaseTail(){
         bark();

@@ -1,5 +1,7 @@
 package com.luv2code.puppyMocking;
 
+import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -23,6 +25,16 @@ import static org.mockito.Mockito.times;
 @RunWith(PowerMockRunner.class)
 public class PuppyTest {
 
+    // Not mocking nor powermocking, but handling exceptions is a good thing
+    @Test(expected = IllegalArgumentException.class)
+    public void testCreatePuppyWithoutHumanIsException(){
+        // Puppy can't exist without a human (?).  The createPuppy method calls the isSoHappy() method
+        Puppy puppy = Puppy.createPuppy("Gatsby", null);
+    }
+
+
+
+    // Override certain events and also note how many times some things happen
     @Test
     public void testCreatePuppy() throws Exception {
         //Mocking
@@ -45,6 +57,7 @@ public class PuppyTest {
 
     }
 
+    // Spy - to avoid WOOFing
     @Test
     public void testChaseTail() throws Exception {
         // The human doesn't need to be any more real than necessary to allow puppy creation
@@ -64,6 +77,7 @@ public class PuppyTest {
         Mockito.verify(puppy, times(1)).bark();
     }
 
+    // Access a private method (so that we can override it)
     @Test
     public void testGoOnWalk() throws Exception {
 
@@ -84,6 +98,7 @@ public class PuppyTest {
         Mockito.verify(puppy, times(1)).wipeOffFeet();
     }
 
+    // Deal with a static method (createPuppy)
     @Test
     public void testBuyPuppy() throws Exception {
         //Mocking static (class) so need PowerMockito
@@ -105,6 +120,7 @@ public class PuppyTest {
 
     }
 
+    // Call private methods directly (which shouldn't be available/visible to us) and ditto private variables
     @Test
     public void testEat() throws Exception {
         // vestigal human
@@ -123,4 +139,40 @@ public class PuppyTest {
         System.out.println(energy + " > " + energyAfterwards);
         assert(energy <= energyAfterwards);
     }
+
+
+    // Contrived test to make sure we can mock a private object instantiation if we wish
+    @Test
+    public void testAcquireToy(){
+
+        String givenToyName="given by mock";
+        // vestigal human
+        Human human = Mockito.mock(Human.class);
+
+        // Choices - a normal puppy that will WOOF or create one in a power mock and quieten the woof
+//        Puppy puppy=new Puppy("fred",human);
+        Puppy puppy = Mockito.spy(new Puppy("SpiderMonkey", human));
+        Mockito.doNothing().when(puppy).bark();
+
+        // Thing we most want to do is to specify/override the Toy that the puppy acquires
+        Toy testToy=new Toy(givenToyName);
+
+        // Buggering about mocking New could cause an exception (probs not a surprise).
+        // - specifying withNoArguments when he constructor called takes an argument generates an exception ...
+        // Specify that any new Toy should be the one we provide -
+        try{
+            PowerMockito.whenNew(Toy.class).withAnyArguments().thenReturn(testToy);
+        } catch (Exception e){
+            // Not the best exception handling in the world, but hey
+            System.out.println("Exception when doing whenNew !!");
+        }
+
+        // Make sure the toy name matches the one that we insisted upon
+        Assert.assertEquals(givenToyName,puppy.acquireToy());
+
+    }
+
+
+
+
 }
